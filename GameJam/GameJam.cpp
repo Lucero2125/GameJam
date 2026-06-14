@@ -141,6 +141,7 @@ void EjecutarRescate() {
 
     int met1X = 50, met1Y = 2;
     int met2X = 65, met2Y = -10; // Cae con retraso
+    int met3X = 80, met3Y = -20; // Tercer meteorito con más retraso
 
     Persona personas[12];
     ConsoleColor paleta[5] = { ConsoleColor::Green, ConsoleColor::Cyan, ConsoleColor::Yellow, ConsoleColor::Red, ConsoleColor::White };
@@ -178,12 +179,15 @@ void EjecutarRescate() {
         if (ciclosMeteoros % 2 == 0) {
             if (met1Y >= 2) BorrarMeteorito(met1X, met1Y);
             if (met2Y >= 2) BorrarMeteorito(met2X, met2Y);
+            if (met3Y >= 2) BorrarMeteorito(met3X, met3Y);
 
             met1Y++; if (met1Y > 25) { met1Y = 2; met1X = rand() % 60 + 22; }
             met2Y++; if (met2Y > 25) { met2Y = 2; met2X = rand() % 60 + 22; }
+            met3Y++; if (met3Y > 25) { met3Y = 2; met3X = rand() % 60 + 22; }
         }
         if (met1Y >= 2) DibujarMeteorito(met1X, met1Y);
         if (met2Y >= 2) DibujarMeteorito(met2X, met2Y);
+        if (met3Y >= 2) DibujarMeteorito(met3X, met3Y);
         ciclosMeteoros++;
 
         // 4. CONTROL DE LA NAVE CON TECLADO
@@ -203,7 +207,8 @@ void EjecutarRescate() {
 
         // Colisión con Meteoritos (Ajustado al nuevo tamaño 8x6 del meteorito)
         if ((abs(naveX - met1X) <= 6 && abs(naveY - met1Y) <= 4) ||
-            (abs(naveX - met2X) <= 6 && abs(naveY - met2Y) <= 4)) {
+            (abs(naveX - met2X) <= 6 && abs(naveY - met2Y) <= 4) ||
+            (abs(naveX - met3X) <= 6 && abs(naveY - met3Y) <= 4)) {
             vidas--;
             BorrarNave(naveX, naveY);
             naveX = 20; naveY = 10; // Retorna a su posición inicial
