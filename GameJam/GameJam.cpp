@@ -144,10 +144,10 @@ void EjecutarRescate() {
     Persona personas[12];
     ConsoleColor paleta[5] = { ConsoleColor::Green, ConsoleColor::Cyan, ConsoleColor::Yellow, ConsoleColor::Red, ConsoleColor::White };
 
-    // Generar personas esparcidas sobre/alrededor de la Tierra
+    // Generar personas esparcidas sobre la Tierra
     for (int i = 0; i < 12; i++) {
-        personas[i].x = rand() % 20 + 15; // Sobre la Tierra
-        personas[i].y = rand() % 16 + 6;
+        personas[i].x = rand() % 12 + 4; // Ajustado a la posición de la Tierra
+        personas[i].y = rand() % 6 + 9;
         personas[i].estado = EN_TIERRA;
         personas[i].color = paleta[rand() % 5];
     }
@@ -177,8 +177,8 @@ void EjecutarRescate() {
         if (met1Y >= 2) BorrarMeteorito(met1X, met1Y);
         if (met2Y >= 2) BorrarMeteorito(met2X, met2Y);
 
-        met1Y++; if (met1Y > 28) { met1Y = 2; met1X = rand() % 20 + 45; }
-        met2Y++; if (met2Y > 28) { met2Y = 2; met2X = rand() % 20 + 55; }
+        met1Y++; if (met1Y > 25) { met1Y = 2; met1X = rand() % 60 + 22; }
+        met2Y++; if (met2Y > 25) { met2Y = 2; met2X = rand() % 60 + 22; }
 
         if (met1Y >= 2) DibujarMeteorito(met1X, met1Y);
         if (met2Y >= 2) DibujarMeteorito(met2X, met2Y);
@@ -190,7 +190,7 @@ void EjecutarRescate() {
             if (tecla == -32) { tecla = _getch(); }
 
             if (tecla == 72 && naveY > 4) naveY -= velocidadNave; // Arriba
-            if (tecla == 80 && naveY < 28) naveY += velocidadNave; // Abajo
+            if (tecla == 80 && naveY < 25) naveY += velocidadNave; // Abajo (reducido para evitar scroll)
             if (tecla == 75 && naveX > 2) naveX -= velocidadNave; // Izquierda 
             if (tecla == 77 && naveX < 110) naveX += velocidadNave; // Derecha (ampliado por la Luna)
         }
@@ -203,7 +203,7 @@ void EjecutarRescate() {
             (abs(naveX - met2X) <= 6 && abs(naveY - met2Y) <= 4)) {
             vidas--;
             BorrarNave(naveX, naveY);
-            naveX = 40; naveY = 15; // Retorna al centro
+            naveX = 20; naveY = 10; // Retorna a su posición inicial
 
             // Si choca, las personas en la nave se pierden en el espacio (vuelven a la Tierra)
             for (int i = 0; i < 12; i++) {
@@ -235,7 +235,7 @@ void EjecutarRescate() {
         }
 
         // Zona de Descarga (Superficie de la Luna)
-        if (naveX >= 80 && pasajerosNave > 0) {
+        if (naveX >= 82 && pasajerosNave > 0) {
             for (int i = 0; i < 12; i++) {
                 if (personas[i].estado == EN_NAVE) {
                     personas[i].estado = EN_LUNA;
@@ -277,6 +277,8 @@ void EjecutarRescate() {
 
 int main() {
     srand((unsigned int)time(0));
+    Console::SetWindowSize(120, 40);
+    Console::SetBufferSize(120, 40);
     Console::CursorVisible = false;
     char jugarDeNuevo;
 
