@@ -137,6 +137,7 @@ void EjecutarRescate() {
 
     int tiempoRestante = rand() % 41 + 80;
     int ciclosFrames = 0;
+    int ciclosMeteoros = 0;
 
     int met1X = 50, met1Y = 2;
     int met2X = 65, met2Y = -10; // Cae con retraso
@@ -144,10 +145,10 @@ void EjecutarRescate() {
     Persona personas[12];
     ConsoleColor paleta[5] = { ConsoleColor::Green, ConsoleColor::Cyan, ConsoleColor::Yellow, ConsoleColor::Red, ConsoleColor::White };
 
-    // Generar personas esparcidas sobre la Tierra
+    // Generar personas esparcidas sobre la Tierra (en una cuadrícula para evitar sobreposición)
     for (int i = 0; i < 12; i++) {
-        personas[i].x = rand() % 12 + 4; // Ajustado a la posición de la Tierra
-        personas[i].y = rand() % 6 + 9;
+        personas[i].x = 4 + (i % 4) * 4;
+        personas[i].y = 8 + (i / 4) * 4;
         personas[i].estado = EN_TIERRA;
         personas[i].color = paleta[rand() % 5];
     }
@@ -173,15 +174,17 @@ void EjecutarRescate() {
         Console::SetCursorPosition(2, 2);
         cout << "TIERRA: " << personasEnTierra << "   |   PASAJEROS: " << pasajerosNave << "/2   |   LUNA (RESCATADOS): " << rescatadosLuna << "/12   ";
 
-        // 3. MOVER Y DIBUJAR METEORITOS
-        if (met1Y >= 2) BorrarMeteorito(met1X, met1Y);
-        if (met2Y >= 2) BorrarMeteorito(met2X, met2Y);
+        // 3. MOVER Y DIBUJAR METEORITOS (Movimiento más lento: cada 2 ciclos)
+        if (ciclosMeteoros % 2 == 0) {
+            if (met1Y >= 2) BorrarMeteorito(met1X, met1Y);
+            if (met2Y >= 2) BorrarMeteorito(met2X, met2Y);
 
-        met1Y++; if (met1Y > 25) { met1Y = 2; met1X = rand() % 60 + 22; }
-        met2Y++; if (met2Y > 25) { met2Y = 2; met2X = rand() % 60 + 22; }
-
+            met1Y++; if (met1Y > 25) { met1Y = 2; met1X = rand() % 60 + 22; }
+            met2Y++; if (met2Y > 25) { met2Y = 2; met2X = rand() % 60 + 22; }
+        }
         if (met1Y >= 2) DibujarMeteorito(met1X, met1Y);
         if (met2Y >= 2) DibujarMeteorito(met2X, met2Y);
+        ciclosMeteoros++;
 
         // 4. CONTROL DE LA NAVE CON TECLADO
         BorrarNave(naveX, naveY);
