@@ -32,7 +32,6 @@ void DibujarTierra() {
 
 void DibujarLuna() {
     Console::ForegroundColor = ConsoleColor::Gray;
-    // Luna alejada (X = 85) para un recorrido más largo
     Console::SetCursorPosition(85, 6);  cout << "         ___---___      ";
     Console::SetCursorPosition(85, 7);  cout << "      .--          --.    ";
     Console::SetCursorPosition(85, 8);  cout << "    ./   ()      .-. \\.  ";
@@ -118,7 +117,7 @@ void Presentacion() {
 void Creditos() {
     Console::Clear();
     Console::ForegroundColor = ConsoleColor::Yellow;
-    Console::SetCursorPosition(35, 10); cout << "Desarrollado por el Equipo Experto UPC";
+    Console::SetCursorPosition(35, 10); cout << "Desarrollado por alumnos de la UPC: Lucero Oriundo y Fernando Medina";
     Console::SetCursorPosition(35, 12); cout << "Gracias por jugar Mision Artemis II";
     Sleep(3000);
 }
@@ -126,7 +125,7 @@ void Creditos() {
 // ================= LÓGICA PRINCIPAL DEL JUEGO =================
 
 void EjecutarRescate() {
-    int naveX = 20, naveY = 10;
+    int naveX = 10, naveY = 20;
     int vidas = 3;
     int velocidadNave = rand() % 2 + 1;
     ConsoleColor colorNave = ConsoleColor::Magenta;
@@ -137,26 +136,32 @@ void EjecutarRescate() {
 
     int tiempoRestante = rand() % 41 + 80;
     int ciclosFrames = 0;
+    int ciclosMeteoros = 0;
 
     int met1X = 50, met1Y = 2;
-    int met2X = 65, met2Y = -10; // Cae con retraso
+    int met2X = 65, met2Y = -10;
 
     Persona personas[12];
-    ConsoleColor paleta[5] = { ConsoleColor::Green, ConsoleColor::Cyan, ConsoleColor::Yellow, ConsoleColor::Red, ConsoleColor::White };
+    ConsoleColor paleta[6] = { ConsoleColor::Magenta, ConsoleColor::Green, ConsoleColor::Cyan, ConsoleColor::Yellow, ConsoleColor::Red, ConsoleColor::White };
 
-    // Generar personas esparcidas sobre la Tierra
+    // generar personas en la tierra
     for (int i = 0; i < 12; i++) {
-        personas[i].x = rand() % 12 + 4; // Ajustado a la posición de la Tierra
-        personas[i].y = rand() % 6 + 9;
+        personas[i].x = 4 + (i % 4) * 5;
+        personas[i].y = 8 + (i / 4) * 4;
         personas[i].estado = EN_TIERRA;
-        personas[i].color = paleta[rand() % 5];
+        personas[i].color = paleta[rand() % 6];
     }
 
     Console::Clear();
 
     while (vidas > 0 && rescatadosLuna < 12 && tiempoRestante > 0) {
 
-        // 1. DIBUJAR ENTORNO Y PERSONAS
+        // 1. Borrar rastro de objetos móviles
+        BorrarNave(naveX, naveY);
+        if (met1Y >= 2) BorrarMeteorito(met1X, met1Y);
+        if (met2Y >= 2) BorrarMeteorito(met2X, met2Y);
+
+        // 2. Dibujar fondo y personas (Esto restaura lo borrado y mantiene la Tierra visible)
         DibujarTierra();
         DibujarLuna();
 
@@ -166,46 +171,44 @@ void EjecutarRescate() {
             }
         }
 
-        // 2. PANEL DE CONTROL (HUD)
+        // 3. Panel de control (HUD)
         Console::ForegroundColor = ConsoleColor::Yellow;
         Console::SetCursorPosition(2, 1);
         cout << "[ NAVE: ORION ]  [ VELOCIDAD: " << velocidadNave << " ]  [ VIDAS: " << vidas << " ]  [ TIEMPO: " << tiempoRestante << "s ]   ";
         Console::SetCursorPosition(2, 2);
         cout << "TIERRA: " << personasEnTierra << "   |   PASAJEROS: " << pasajerosNave << "/2   |   LUNA (RESCATADOS): " << rescatadosLuna << "/12   ";
 
-        // 3. MOVER Y DIBUJAR METEORITOS
-        if (met1Y >= 2) BorrarMeteorito(met1X, met1Y);
-        if (met2Y >= 2) BorrarMeteorito(met2X, met2Y);
-
-        met1Y++; if (met1Y > 25) { met1Y = 2; met1X = rand() % 60 + 22; }
-        met2Y++; if (met2Y > 25) { met2Y = 2; met2X = rand() % 60 + 22; }
-
+        // 4. Mover y dibujar meteoritos
+        if (ciclosMeteoros % 2 == 0) {
+            met1Y++; if (met1Y > 25) { met1Y = 2; met1X = rand() % 50 + 25; }
+            met2Y++; if (met2Y > 25) { met2Y = 2; met2X = rand() % 50 + 25; }
+        }
         if (met1Y >= 2) DibujarMeteorito(met1X, met1Y);
         if (met2Y >= 2) DibujarMeteorito(met2X, met2Y);
+        ciclosMeteoros++;
 
-        // 4. CONTROL DE LA NAVE CON TECLADO
-        BorrarNave(naveX, naveY);
+        // 5. Mover y dibujar nave
         if (_kbhit()) {
             char tecla = _getch();
             if (tecla == -32) { tecla = _getch(); }
 
             if (tecla == 72 && naveY > 4) naveY -= velocidadNave; // Arriba
-            if (tecla == 80 && naveY < 25) naveY += velocidadNave; // Abajo (reducido para evitar scroll)
-            if (tecla == 75 && naveX > 2) naveX -= velocidadNave; // Izquierda 
-            if (tecla == 77 && naveX < 110) naveX += velocidadNave; // Derecha (ampliado por la Luna)
+            if (tecla == 80 && naveY < 25) naveY += velocidadNave; // Abajo
+            if (tecla == 75 && naveX > 2) naveX -= velocidadNave; // Izquierda
+            if (tecla == 77 && naveX < 110) naveX += velocidadNave; // Derecha
         }
         DibujarNave(naveX, naveY, colorNave);
 
-        // 5. LÓGICA DE COLISIONES Y RESCATES
+        // 6. Lógica de Colisiones y Rescates
 
-        // Colisión con Meteoritos (Ajustado al nuevo tamaño 8x6 del meteorito)
-        if ((abs(naveX - met1X) <= 6 && abs(naveY - met1Y) <= 4) ||
-            (abs(naveX - met2X) <= 6 && abs(naveY - met2Y) <= 4)) {
+        // Colisión con meteoritos
+        if ((abs(naveX - met1X) <= 4 && abs(naveY - met1Y) <= 4) ||
+            (abs(naveX - met2X) <= 4 && abs(naveY - met2Y) <= 4)) {
+
             vidas--;
             BorrarNave(naveX, naveY);
-            naveX = 20; naveY = 10; // Retorna a su posición inicial
+            naveX = 10; naveY = 20; // posición inicial
 
-            // Si choca, las personas en la nave se pierden en el espacio (vuelven a la Tierra)
             for (int i = 0; i < 12; i++) {
                 if (personas[i].estado == EN_NAVE) {
                     personas[i].estado = EN_TIERRA;
@@ -216,39 +219,40 @@ void EjecutarRescate() {
 
             Console::SetCursorPosition(45, 15);
             Console::ForegroundColor = ConsoleColor::Red;
-            cout << "¡IMPACTO! Pierdes 1 vida.";
+            cout << "IMPACTO. Pierdes 1 vida.";
             Sleep(1000);
             Console::SetCursorPosition(45, 15); cout << "                         ";
+
+            Console::Clear();
         }
 
-        // Zona de Carga (Recolectar personas de cuerpo completo)
+        // Carga (Recoger personas)
         for (int i = 0; i < 12; i++) {
             if (personas[i].estado == EN_TIERRA && pasajerosNave < 2) {
-                // Distancia de colisión ajustada al tamaño del cuerpo
                 if (abs(naveX - personas[i].x) <= 3 && abs(naveY - personas[i].y) <= 3) {
                     personas[i].estado = EN_NAVE;
-                    BorrarPersona(personas[i].x, personas[i].y);
+                    // No hace falta BorrarPersona porque al redibujar la Tierra se limpia el espacio
                     pasajerosNave++;
                     personasEnTierra--;
                 }
             }
         }
 
-        // Zona de Descarga (Superficie de la Luna)
-        if (naveX >= 82 && pasajerosNave > 0) {
+        // Descarga (Luna)
+        if (naveX >= 80 && naveY <= 19 && pasajerosNave > 0) {
             for (int i = 0; i < 12; i++) {
                 if (personas[i].estado == EN_NAVE) {
                     personas[i].estado = EN_LUNA;
-                    // Posicionamos a las personas ordenadas sobre la Luna
                     personas[i].x = 88 + (rescatadosLuna % 4) * 4;
-                    personas[i].y = 8 + (rescatadosLuna / 4) * 4;
+                    personas[i].y = 12 + (rescatadosLuna / 4) * 3;
                     rescatadosLuna++;
                 }
             }
             pasajerosNave = 0;
+            velocidadNave = rand() % 2 + 1;
         }
 
-        // 6. CONTROL DEL TIEMPO
+        // 7. Control del Tiempo
         Sleep(50);
         ciclosFrames++;
         if (ciclosFrames == 20) {
@@ -262,7 +266,7 @@ void EjecutarRescate() {
     Console::SetCursorPosition(35, 12);
     if (rescatadosLuna == 12) {
         Console::ForegroundColor = ConsoleColor::Green;
-        cout << "¡GANASTE! Has rescatado a todas las personas a tiempo.";
+        cout << "GANASTE. Has rescatado a todas las personas a tiempo.";
     }
     else if (vidas == 0) {
         Console::ForegroundColor = ConsoleColor::Red;
@@ -290,7 +294,7 @@ int main() {
         Console::Clear();
         Console::ForegroundColor = ConsoleColor::White;
         Console::SetCursorPosition(35, 10);
-        cout << "¿Deseas jugar un nuevo rescate? (S/N): ";
+        cout << "Deseas jugar un nuevo rescate? (S/N): ";
         cin >> jugarDeNuevo;
         jugarDeNuevo = toupper(jugarDeNuevo);
 
